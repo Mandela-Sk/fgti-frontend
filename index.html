@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="pt-MZ">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Núcleo de Estudantes FGTI - UCM Pemba</title>
+<style>
+  :root {
+    --azul-ucm: #0b3d91;
+    --azul-escuro: #062a66;
+    --azul-claro: #e8f0fe;
+    --branco: #ffffff;
+    --cinza: #f4f6f9;
+    --texto: #1a1a1a;
+    --texto-suave: #555;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: var(--cinza);
+    color: var(--texto);
+    line-height: 1.6;
+  }
+
+  header {
+    background: var(--azul-ucm);
+    color: var(--branco);
+    padding: 1rem 1.2rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+
+  .header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .logo {
+    font-weight: 700;
+    font-size: 1.1rem;
+  }
+
+  .logo span {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 400;
+    opacity: 0.85;
+  }
+
+  nav {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.8rem;
+    flex-wrap: wrap;
+  }
+
+  nav a {
+    color: var(--branco);
+    text-decoration: none;
+    font-size: 0.85rem;
+    padding: 0.4rem 0.7rem;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.12);
+    transition: background 0.2s;
+  }
+
+  nav a:hover, nav a.active {
+    background: rgba(255,255,255,0.28);
+  }
+
+  .hero {
+    background: linear-gradient(135deg, var(--azul-ucm), var(--azul-escuro));
+    color: var(--branco);
+    padding: 2.5rem 1.2rem;
+    text-align: center;
+  }
+
+  .hero h1 {
+    font-size: 1.5rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .hero p {
+    font-size: 0.95rem;
+    opacity: 0.9;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  .hero .badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.4);
+    padding: 0.3rem 0.9rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  section {
+    padding: 2rem 1.2rem;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  section h2 {
+    color: var(--azul-ucm);
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    border-left: 4px solid var(--azul-ucm);
+    padding-left: 0.6rem;
+  }
+
+  .card {
+    background: var(--branco);
+    border-radius: 10px;
+    padding: 1rem 1.1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    border: 1px solid #e5e9f0;
+  }
+
+  .card h3 {
+    color: var(--azul-escuro);
+    font-size: 1rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .card .meta {
+    font-size: 0.75rem;
+    color: var(--texto-suave);
+    margin-bottom: 0.5rem;
+  }
+
+  .card p {
+    font-size: 0.9rem;
+    color: var(--texto-suave);
+  }
+
+  .tag {
+    display: inline-block;
+    background: var(--azul-claro);
+    color: var(--azul-ucm);
+    font-size: 0.7rem;
+    padding: 0.15rem 0.6rem;
+    border-radius: 12px;
+    margin-bottom: 0.4rem;
+  }
+
+  .candidato-card {
+    display: flex;
+    gap: 0.9rem;
+    align-items: flex-start;
+  }
+
+  .candidato-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--azul-ucm);
+    color: var(--branco);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+
+  .estado-vazio {
+    text-align: center;
+    color: var(--texto-suave);
+    font-size: 0.9rem;
+    padding: 1.5rem;
+  }
+
+  footer {
+    background: var(--azul-escuro);
+    color: var(--branco);
+    text-align: center;
+    padding: 1.5rem 1rem;
+    font-size: 0.8rem;
+    opacity: 0.85;
+    margin-top: 2rem;
+  }
+
+  .loading {
+    text-align: center;
+    padding: 1rem;
+    color: var(--texto-suave);
+    font-size: 0.85rem;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+    <div class="logo">
+      FGTI · UCM Pemba
+      <span>Núcleo de Estudantes 2026</span>
+    </div>
+  </div>
+  <nav>
+    <a href="#inicio" class="active">Início</a>
+    <a href="#noticias">Notícias</a>
+    <a href="#candidatos">Candidatos</a>
+  </nav>
+</header>
+
+<div class="hero" id="inicio">
+  <div class="badge">🗳️ Eleições do Núcleo de Estudantes 2026</div>
+  <h1>Participa. Informa-te. Vota.</h1>
+  <p>Acompanha as candidaturas, propostas e novidades do processo eleitoral do Núcleo de Estudantes da FGTI - UCM Pemba.</p>
+</div>
+
+<section id="noticias">
+  <h2>Notícias</h2>
+  <div id="lista-noticias">
+    <div class="loading">A carregar notícias...</div>
+  </div>
+</section>
+
+<section id="candidatos">
+  <h2>Candidatos</h2>
+  <div id="lista-candidatos">
+    <div class="loading">A carregar candidatos...</div>
+  </div>
+</section>
+
+<footer>
+  Faculdade de Gestão de Turismo e Informática (FGTI) — Universidade Católica de Moçambique, Pemba
+</footer>
+
+<script>
+  const API_BASE = "https://fgti-backend.onrender.com/api";
+
+  function escapeHtml(str) {
+    if (!str) return "";
+    const div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function formatarData(dataStr) {
+    if (!dataStr) return "";
+    const d = new Date(dataStr);
+    return d.toLocaleDateString("pt-PT", { day: "2-digit", month: "long", year: "numeric" });
+  }
+
+  async function carregarNoticias() {
+    const container = document.getElementById("lista-noticias");
+    try {
+      const resposta = await fetch(`${API_BASE}/noticias`);
+      const noticias = await resposta.json();
+
+      if (!Array.isArray(noticias) || noticias.length === 0) {
+        container.innerHTML = '<div class="estado-vazio">Ainda não há notícias publicadas.</div>';
+        return;
+      }
+
+      container.innerHTML = noticias.map(n => `
+        <div class="card">
+          ${n.categoria ? `<span class="tag">${escapeHtml(n.categoria)}</span>` : ""}
+          <h3>${escapeHtml(n.titulo)}</h3>
+          <div class="meta">${formatarData(n.criado_em)}</div>
+          <p>${escapeHtml(n.corpo)}</p>
+        </div>
+      `).join("");
+    } catch (erro) {
+      console.error(erro);
+      container.innerHTML = '<div class="estado-vazio">Não foi possível carregar as notícias. Tenta novamente em instantes.</div>';
+    }
+  }
+
+  async function carregarCandidatos() {
+    const container = document.getElementById("lista-candidatos");
+    try {
+      const resposta = await fetch(`${API_BASE}/candidaturas`);
+      const candidaturas = await resposta.json();
+
+      if (!Array.isArray(candidaturas) || candidaturas.length === 0) {
+        container.innerHTML = '<div class="estado-vazio">Ainda não há candidaturas submetidas.</div>';
+        return;
+      }
+
+      container.innerHTML = candidaturas.map(c => {
+        const inicial = c.nome_candidato ? c.nome_candidato.charAt(0).toUpperCase() : "?";
+        return `
+        <div class="card candidato-card">
+          <div class="candidato-avatar">${escapeHtml(inicial)}</div>
+          <div>
+            <span class="tag">${escapeHtml(c.cargo)}</span>
+            <h3>${escapeHtml(c.nome_candidato)}</h3>
+            <p>${c.proposta ? escapeHtml(c.proposta) : "Proposta ainda não disponível."}</p>
+          </div>
+        </div>
+      `;
+      }).join("");
+    } catch (erro) {
+      console.error(erro);
+      container.innerHTML = '<div class="estado-vazio">Não foi possível carregar os candidatos. Tenta novamente em instantes.</div>';
+    }
+  }
+
+  carregarNoticias();
+  carregarCandidatos();
+</script>
+
+</body>
+</html>
