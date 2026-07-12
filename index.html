@@ -195,6 +195,107 @@
     color: var(--texto-suave);
     font-size: 0.85rem;
   }
+
+  .btn {
+    border: none;
+    border-radius: 20px;
+    padding: 0.5rem 1.1rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+    font-weight: 600;
+  }
+
+  .btn-primario {
+    background: var(--azul-ucm);
+    color: var(--branco);
+  }
+
+  .btn-primario:disabled {
+    background: #9fb3d8;
+    cursor: not-allowed;
+  }
+
+  .btn-secundario {
+    background: var(--azul-claro);
+    color: var(--azul-ucm);
+  }
+
+  .candidato-card {
+    flex-wrap: wrap;
+  }
+
+  .candidato-acoes {
+    width: 100%;
+    margin-top: 0.7rem;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+  }
+
+  .candidato-votos {
+    font-size: 0.8rem;
+    color: var(--texto-suave);
+  }
+
+  .login-box {
+    background: var(--branco);
+    border-radius: 10px;
+    padding: 1rem 1.1rem;
+    border: 1px solid #e5e9f0;
+    max-width: 360px;
+  }
+
+  .login-box input {
+    width: 100%;
+    padding: 0.55rem 0.7rem;
+    margin-bottom: 0.6rem;
+    border: 1px solid #d5dae3;
+    border-radius: 8px;
+    font-size: 0.9rem;
+  }
+
+  .login-status {
+    background: var(--azul-claro);
+    color: var(--azul-ucm);
+    border-radius: 10px;
+    padding: 0.7rem 1rem;
+    font-size: 0.85rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 360px;
+  }
+
+  .login-erro {
+    color: #b3261e;
+    font-size: 0.8rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .resultado-barra-fundo {
+    background: var(--azul-claro);
+    border-radius: 8px;
+    height: 10px;
+    overflow: hidden;
+    margin-top: 0.4rem;
+  }
+
+  .resultado-barra {
+    background: var(--azul-ucm);
+    height: 100%;
+    border-radius: 8px;
+  }
+
+  .resultado-cargo-titulo {
+    font-weight: 700;
+    color: var(--azul-escuro);
+    margin: 1.2rem 0 0.6rem;
+    font-size: 0.95rem;
+  }
+
+  .resultado-cargo-titulo:first-child {
+    margin-top: 0;
+  }
 </style>
 </head>
 <body>
@@ -210,6 +311,8 @@
     <a href="#inicio" class="active">Início</a>
     <a href="#noticias">Notícias</a>
     <a href="#candidatos">Candidatos</a>
+    <a href="#resultados">Resultados</a>
+    <a href="#entrar">Entrar</a>
   </nav>
 </header>
 
@@ -218,6 +321,11 @@
   <h1>Participa. Informa-te. Vota.</h1>
   <p>Acompanha as candidaturas, propostas e novidades do processo eleitoral do Núcleo de Estudantes da FGTI - UCM Pemba.</p>
 </div>
+
+<section id="entrar">
+  <h2>A tua conta</h2>
+  <div id="area-login"></div>
+</section>
 
 <section id="noticias">
   <h2>Notícias</h2>
@@ -233,12 +341,20 @@
   </div>
 </section>
 
+<section id="resultados">
+  <h2>Resultados</h2>
+  <div id="lista-resultados">
+    <div class="loading">A carregar resultados...</div>
+  </div>
+</section>
+
 <footer>
   Faculdade de Gestão de Turismo e Informática (FGTI) — Universidade Católica de Moçambique, Pemba
 </footer>
 
 <script>
   const API_BASE = "https://fgti-backend.onrender.com/api";
+  const TEMPO_LIMITE_MS = 60000; // 60 segundos - o servidor gratuito pode demorar a "acordar"
 
   function escapeHtml(str) {
     if (!str) return "";
@@ -253,10 +369,41 @@
     return d.toLocaleDateString("pt-PT", { day: "2-digit", month: "long", year: "numeric" });
   }
 
+  async function buscarComTimeout(url, tempoLimite, opcoes = {}) {
+    const controlador = new AbortController();
+    const temporizador = setTimeout(() => controlador.abort(), tempoLimite);
+    try {
+      const resposta = await fetch(url, { ...opcoes, signal: controlador.signal });
+      clearTimeout(temporizador);
+      return resposta;
+    } catch (erro) {
+      clearTimeout(temporizador);
+      throw erro;
+    }
+  }
+
+  function mostrarErro(container, mensagem, aoTentarNovamente) {
+    container.innerHTML = "";
+    const div = document.createElement("div");
+    div.className = "estado-vazio";
+    div.textContent = mensagem;
+    const botao = document.createElement("button");
+    botao.textContent = "Tentar novamente";
+    botao.style.cssText = "margin-top:0.8rem;background:var(--azul-ucm);color:#fff;border:none;padding:0.5rem 1.2rem;border-radius:20px;font-size:0.85rem;cursor:pointer;display:block;margin-left:auto;margin-right:auto;";
+    botao.onclick = aoTentarNovamente;
+    container.appendChild(div);
+    container.appendChild(botao);
+  }
+
+  function mostrarACarregar(container, texto) {
+    container.innerHTML = `<div class="loading">${texto}</div>`;
+  }
+
   async function carregarNoticias() {
     const container = document.getElementById("lista-noticias");
+    mostrarACarregar(container, "A carregar notícias... (o servidor pode demorar até 1 minuto a acordar)");
     try {
-      const resposta = await fetch(`${API_BASE}/noticias`);
+      const resposta = await buscarComTimeout(`${API_BASE}/noticias`, TEMPO_LIMITE_MS);
       const noticias = await resposta.json();
 
       if (!Array.isArray(noticias) || noticias.length === 0) {
@@ -274,14 +421,18 @@
       `).join("");
     } catch (erro) {
       console.error(erro);
-      container.innerHTML = '<div class="estado-vazio">Não foi possível carregar as notícias. Tenta novamente em instantes.</div>';
+      const mensagem = erro.name === "AbortError"
+        ? "O servidor está a demorar muito a responder. Toca para tentar novamente."
+        : "Não foi possível carregar as notícias. Toca para tentar novamente.";
+      mostrarErro(container, mensagem, carregarNoticias);
     }
   }
 
   async function carregarCandidatos() {
     const container = document.getElementById("lista-candidatos");
+    mostrarACarregar(container, "A carregar candidatos... (o servidor pode demorar até 1 minuto a acordar)");
     try {
-      const resposta = await fetch(`${API_BASE}/candidaturas`);
+      const resposta = await buscarComTimeout(`${API_BASE}/candidaturas`, TEMPO_LIMITE_MS);
       const candidaturas = await resposta.json();
 
       if (!Array.isArray(candidaturas) || candidaturas.length === 0) {
@@ -299,17 +450,191 @@
             <h3>${escapeHtml(c.nome_candidato)}</h3>
             <p>${c.proposta ? escapeHtml(c.proposta) : "Proposta ainda não disponível."}</p>
           </div>
+          <div class="candidato-acoes">
+            <button class="btn btn-primario" onclick="votar(${c.id}, this)">Votar</button>
+            <span class="candidato-votos" id="voto-msg-${c.id}"></span>
+          </div>
         </div>
       `;
       }).join("");
     } catch (erro) {
       console.error(erro);
-      container.innerHTML = '<div class="estado-vazio">Não foi possível carregar os candidatos. Tenta novamente em instantes.</div>';
+      const mensagem = erro.name === "AbortError"
+        ? "O servidor está a demorar muito a responder. Toca para tentar novamente."
+        : "Não foi possível carregar os candidatos. Toca para tentar novamente.";
+      mostrarErro(container, mensagem, carregarCandidatos);
     }
   }
 
+  // ---------- LOGIN ----------
+  function obterToken() {
+    return localStorage.getItem("fgti_token");
+  }
+
+  function obterUtilizador() {
+    const dados = localStorage.getItem("fgti_utilizador");
+    return dados ? JSON.parse(dados) : null;
+  }
+
+  function guardarSessao(token, utilizador) {
+    localStorage.setItem("fgti_token", token);
+    localStorage.setItem("fgti_utilizador", JSON.stringify(utilizador));
+  }
+
+  function terminarSessao() {
+    localStorage.removeItem("fgti_token");
+    localStorage.removeItem("fgti_utilizador");
+    renderizarAreaLogin();
+  }
+
+  function renderizarAreaLogin() {
+    const container = document.getElementById("area-login");
+    const utilizador = obterUtilizador();
+
+    if (utilizador) {
+      container.innerHTML = `
+        <div class="login-status">
+          <span>Sessão iniciada como <strong>${escapeHtml(utilizador.nome)}</strong></span>
+          <button class="btn btn-secundario" onclick="terminarSessao()">Sair</button>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = `
+      <div class="login-box">
+        <div id="login-erro-msg"></div>
+        <input type="email" id="login-email" placeholder="O teu email" autocomplete="email">
+        <input type="password" id="login-password" placeholder="Password" autocomplete="current-password">
+        <button class="btn btn-primario" onclick="fazerLogin()">Entrar</button>
+      </div>
+    `;
+  }
+
+  async function fazerLogin() {
+    const email = document.getElementById("login-email").value.trim();
+    const password = document.getElementById("login-password").value;
+    const erroMsg = document.getElementById("login-erro-msg");
+    erroMsg.innerHTML = "";
+
+    if (!email || !password) {
+      erroMsg.innerHTML = '<div class="login-erro">Preenche o email e a password.</div>';
+      return;
+    }
+
+    try {
+      const resposta = await buscarComTimeout(`${API_BASE}/auth/login`, TEMPO_LIMITE_MS, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
+      const dados = await resposta.json();
+
+      if (!resposta.ok) {
+        erroMsg.innerHTML = `<div class="login-erro">${escapeHtml(dados.erro || "Não foi possível entrar.")}</div>`;
+        return;
+      }
+
+      guardarSessao(dados.token, dados.utilizador);
+      renderizarAreaLogin();
+    } catch (erro) {
+      console.error(erro);
+      erroMsg.innerHTML = '<div class="login-erro">Erro de ligação. Tenta novamente.</div>';
+    }
+  }
+
+  // ---------- VOTAR ----------
+  async function votar(candidaturaId, botao) {
+    const token = obterToken();
+    const msgSpan = document.getElementById(`voto-msg-${candidaturaId}`);
+
+    if (!token) {
+      msgSpan.textContent = "Precisas de iniciar sessão para votar.";
+      document.getElementById("entrar").scrollIntoView({ behavior: "smooth" });
+      return;
+    }
+
+    botao.disabled = true;
+    msgSpan.textContent = "A registar voto...";
+
+    try {
+      const resposta = await buscarComTimeout(`${API_BASE}/votos`, TEMPO_LIMITE_MS, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ candidatura_id: candidaturaId })
+      });
+      const dados = await resposta.json();
+
+      if (!resposta.ok) {
+        msgSpan.textContent = dados.erro || "Não foi possível registar o voto.";
+        botao.disabled = false;
+        return;
+      }
+
+      msgSpan.textContent = "✅ Voto registado!";
+      carregarResultados();
+    } catch (erro) {
+      console.error(erro);
+      msgSpan.textContent = "Erro de ligação. Tenta novamente.";
+      botao.disabled = false;
+    }
+  }
+
+  // ---------- RESULTADOS ----------
+  async function carregarResultados() {
+    const container = document.getElementById("lista-resultados");
+    mostrarACarregar(container, "A carregar resultados...");
+    try {
+      const resposta = await buscarComTimeout(`${API_BASE}/votos/resultados`, TEMPO_LIMITE_MS);
+      const resultados = await resposta.json();
+
+      if (!Array.isArray(resultados) || resultados.length === 0) {
+        container.innerHTML = '<div class="estado-vazio">Ainda não há votos registados.</div>';
+        return;
+      }
+
+      const porCargo = {};
+      resultados.forEach(r => {
+        if (!porCargo[r.cargo]) porCargo[r.cargo] = [];
+        porCargo[r.cargo].push(r);
+      });
+
+      let html = "";
+      Object.keys(porCargo).forEach(cargo => {
+        const candidatosDoCargo = porCargo[cargo];
+        const maxVotos = Math.max(...candidatosDoCargo.map(c => Number(c.total_votos)), 1);
+        html += `<div class="resultado-cargo-titulo">${escapeHtml(cargo)}</div>`;
+        html += candidatosDoCargo.map(c => {
+          const largura = Math.round((Number(c.total_votos) / maxVotos) * 100);
+          return `
+            <div class="card">
+              <h3>${escapeHtml(c.nome_candidato)}</h3>
+              <div class="meta">${c.total_votos} voto${c.total_votos == 1 ? "" : "s"}</div>
+              <div class="resultado-barra-fundo">
+                <div class="resultado-barra" style="width:${largura}%"></div>
+              </div>
+            </div>
+          `;
+        }).join("");
+      });
+
+      container.innerHTML = html;
+    } catch (erro) {
+      console.error(erro);
+      const mensagem = erro.name === "AbortError"
+        ? "O servidor está a demorar muito a responder. Toca para tentar novamente."
+        : "Não foi possível carregar os resultados. Toca para tentar novamente.";
+      mostrarErro(container, mensagem, carregarResultados);
+    }
+  }
+
+  renderizarAreaLogin();
   carregarNoticias();
   carregarCandidatos();
+  carregarResultados();
 </script>
 
 </body>
