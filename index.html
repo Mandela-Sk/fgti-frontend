@@ -507,6 +507,7 @@
         <input type="email" id="login-email" placeholder="O teu email" autocomplete="email">
         <input type="password" id="login-password" placeholder="Password" autocomplete="current-password">
         <button class="btn btn-primario" onclick="fazerLogin()">Entrar</button>
+        <p style="margin-top:0.8rem;font-size:0.85rem;text-align:center;">Ainda não tens conta? <a href="#" onclick="renderizarAreaRegisto(); return false;">Cria aqui</a></p>
       </div>
     `;
   }
@@ -542,7 +543,52 @@
       erroMsg.innerHTML = '<div class="login-erro">Erro de ligação. Tenta novamente.</div>';
     }
   }
+function renderizarAreaRegisto() {
+    const container = document.getElementById("area-login");
+    container.innerHTML = `
+      <div class="login-box">
+        <div id="registo-erro-msg"></div>
+        <input type="text" id="registo-nome" placeholder="O teu nome completo" autocomplete="name">
+        <input type="email" id="registo-email" placeholder="O teu email institucional (@ucm.ac.mz)" autocomplete="email">
+        <input type="password" id="registo-password" placeholder="Cria uma password" autocomplete="new-password">
+        <button class="btn btn-primario" onclick="registar()">Criar conta</button>
+        <p style="margin-top:0.8rem;font-size:0.85rem;text-align:center;">Já tens conta? <a href="#" onclick="renderizarAreaLogin(); return false;">Entra aqui</a></p>
+      </div>
+    `;
+  }
 
+  async function registar() {
+    const nome = document.getElementById("registo-nome").value.trim();
+    const email = document.getElementById("registo-email").value.trim();
+    const password = document.getElementById("registo-password").value;
+    const erroMsg = document.getElementById("registo-erro-msg");
+    erroMsg.innerHTML = "";
+
+    if (!nome || !email || !password) {
+      erroMsg.innerHTML = '<div class="login-erro">Preenche o nome, email e password.</div>';
+      return;
+    }
+
+    try {
+      const resposta = await buscarComTimeout(`${API_BASE}/auth/registo`, TEMPO_LIMITE_MS, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nome, email, password })
+      });
+      const dados = await resposta.json();
+
+      if (!resposta.ok) {
+        erroMsg.innerHTML = `<div class="login-erro">${escapeHtml(dados.erro || "Não foi possível criar a conta.")}</div>`;
+        return;
+      }
+
+      erroMsg.innerHTML = '<div style="color:#1a7f37;background:#eafbea;padding:0.6rem;border-radius:8px;">✅ Conta criada! Agora podes entrar.</div>';
+      setTimeout(() => renderizarAreaLogin(), 1500);
+    } catch (erro) {
+      console.error(erro);
+      erroMsg.innerHTML = '<div class="login-erro">Erro de ligação. Tenta novamente.</div>';
+    }
+  }
   // ---------- VOTAR ----------
   async function votar(candidaturaId, botao) {
     const token = obterToken();
