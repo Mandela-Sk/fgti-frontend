@@ -489,10 +489,13 @@
     localStorage.setItem("fgti_utilizador", JSON.stringify(utilizador));
   }
 
-  function terminarSessao() {
+function terminarSessao() {
     localStorage.removeItem("fgti_token");
     localStorage.removeItem("fgti_utilizador");
     renderizarAreaLogin();
+    renderizarAreaCandidatura();
+  }  
+
   }
 
   function renderizarAreaLogin() {
@@ -544,9 +547,11 @@
         return;
       }
 
-      guardarSessao(dados.token, dados.utilizador);
-      renderizarAreaLogin();
-    } catch (erro) {
+     guardarSessao(dados.token, dados.utilizador);
+renderizarAreaLogin();
+renderizarAreaCandidatura();
+} catch (erro) { 
+
       console.error(erro);
       erroMsg.innerHTML = '<div class="login-erro">Erro de ligação. Tenta novamente.</div>';
     }
@@ -685,10 +690,12 @@ function renderizarAreaRegisto() {
     }
   }
 
-  renderizarAreaLogin();
+renderizarAreaLogin();
+  renderizarAreaCandidatura();
   carregarNoticias();
   carregarCandidatos();
-  carregarResultados();
+  carregarResultados();  
+  
 </script>
 
 </body>
