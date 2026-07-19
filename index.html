@@ -642,6 +642,63 @@ function renderizarAreaRegisto() {
     }
   }
 
+// ---------- CANDIDATAR-ME ----------
+  function renderizarAreaCandidatura() {
+    const container = document.getElementById("area-candidatura");
+    const utilizador = obterUtilizador();
+
+    if (!utilizador) {
+      container.innerHTML = '<div class="estado-vazio">Precisas de iniciar sessão para submeteres uma candidatura.</div>';
+      return;
+    }
+
+    container.innerHTML = `
+      <div class="login-box">
+        <div id="candidatura-erro-msg"></div>
+        <input type="text" id="candidatura-cargo" placeholder="Cargo (ex: Presidente do Núcleo de Estudantes)">
+        <textarea id="candidatura-proposta" placeholder="A tua proposta (opcional)" rows="4" style="width:100%;padding:0.55rem 0.7rem;margin-bottom:0.6rem;border:1px solid #d5dae3;border-radius:8px;font-size:0.9rem;font-family:inherit;"></textarea>
+        <button class="btn btn-primario" onclick="submeterCandidatura()">Submeter candidatura</button>
+      </div>
+    `;
+  }
+
+  async function submeterCandidatura() {
+    const token = obterToken();
+    const cargo = document.getElementById("candidatura-cargo").value.trim();
+    const proposta = document.getElementById("candidatura-proposta").value.trim();
+    const erroMsg = document.getElementById("candidatura-erro-msg");
+    erroMsg.innerHTML = "";
+
+    if (!cargo) {
+      erroMsg.innerHTML = '<div class="login-erro">O cargo é obrigatório.</div>';
+      return;
+    }
+
+    try {
+      const resposta = await buscarComTimeout(`${API_BASE}/candidaturas`, TEMPO_LIMITE_MS, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ cargo, proposta })
+      });
+      const dados = await resposta.json();
+
+      if (!resposta.ok) {
+        erroMsg.innerHTML = `<div class="login-erro">${escapeHtml(dados.erro || "Não foi possível submeter a candidatura.")}</div>`;
+        return;
+      }
+
+      erroMsg.innerHTML = '<div style="color:#1a7f37;background:#eafbea;padding:0.6rem;border-radius:8px;">✅ Candidatura submetida com sucesso!</div>';
+      document.getElementById("candidatura-cargo").value = "";
+      document.getElementById("candidatura-proposta").value = "";
+      carregarCandidatos();
+    } catch (erro) {
+      console.error(erro);
+      erroMsg.innerHTML = '<div class="login-erro">Erro de ligação. Tenta novamente.</div>';
+    }
+  }
   // ---------- RESULTADOS ----------
   async function carregarResultados() {
     const container = document.getElementById("lista-resultados");
